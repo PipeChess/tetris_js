@@ -34,9 +34,10 @@ and open the template in the editor.
     var state = [0, 0];
     var blockSize = 20;
     var speed = 20;
-    var blocks = [['sshape', 2], ['bshape', 2], ['lshape', 3], ['ishape', 4]];
+    var blocks = [['sshape', 2, 3], ['bshape', 2, 2], ['lshape', 3, 2], ['ishape', 4, 1]];
     var currentBlock = null;
     var currentBlockHeight = null;
+    var currentBlockWidth = null;
 
     /**
      * initialize
@@ -64,7 +65,7 @@ and open the template in the editor.
                 break;
 
             case 'right':
-                if (state[0] + speed <= width) {
+                if (state[0] + speed + blockSize * currentBlockWidth <= width) {
                     x = state[0] + speed;
                 } else {
                     x = state[0];
@@ -200,6 +201,7 @@ and open the template in the editor.
         var rand = Math.floor(Math.random() * 10) % 4;
         currentBlock = blocks[rand][0];
         currentBlockHeight = blocks[rand][1];
+        currentBlockWidth = blocks[rand][2];
     }
 
 </script>
