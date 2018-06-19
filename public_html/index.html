@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style>
+            #game {
+                border: 1px solid blue;
+            }   
+        </style>
+    </head>
+    <body>
+        <button id="left" onclick="updateShape('left');">left</button>
+        <button id="down" onclick="updateShape('down');">down</button>
+        <button id="right" onclick="updateShape('right');">right</button><br /><br /><br /><br />
+        <canvas id="game" height="440" width="200"></canvas>
+    </body>
+</html>
+
+<script>
+
+    var canvas = document.getElementById("game");
+    var ctx = canvas.getContext("2d");
+    var height = 440;
+    var width = 200;
+
+    var state = [0, 0];
+    var blockSize = 20;
+    var speed = 20;
+    var blocks = [['sshape', 2], ['bshape', 2], ['lshape', 3], ['ishape', 4]];
+    var currentBlock = null;
+    var currentBlockHeight = null;
+
+    /**
+     * initialize
+     */
+    setBlockType();
+    updateShape('down');
+    var update = setInterval(function () {
+        updateShape('down');
+    }, 1000);
+
+    function updateShape(dir) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        var x, y = 0;
+        switch (dir) {
+            case 'down':
+                console.log(state[0] + " : " + state[1]);
+                x = state[0];
+                if (state[1] + speed + currentBlockHeight * blockSize <= height) {
+                    y = state[1] + speed;
+                } else {
+                    y = state[1];
+                }
+                console.log(x + " : " + y);
+                break;
+
+            case 'right':
+                if (state[0] + speed <= width) {
+                    x = state[0] + speed;
+                } else {
+                    x = state[0];
+                }
+
+                y = state[1];
+                break;
+
+            case 'left':
+                if (state[0] - speed >= 0) {
+                    x = state[0] - speed;
+                } else {
+                    x = state[0];
+                }
+                y = state[1];
+                break;
+        }
+        state[0] = x;
+        state[1] = y;
+        draw();
+    }
+
+    function draw() {
+        switch (currentBlock) {
+            case 'lshape':
+                drawLShape();
+                break;
+            case 'bshape':
+                drawBShape();
+                break;
+            case 'sshape':
+                drawSShape();
+                break;
+            case 'ishape':
+                drawIShape();
+                break;
+            default:
+
+                break;
+        }
+    }
+
+    function drawIShape() {
+        var x = state[0];
+        var y = state[1];
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + (4 * blockSize));
+        ctx.moveTo(x, y + (blockSize));
+        ctx.lineTo(x + (blockSize), y + (blockSize));
+        ctx.moveTo(x, y + (2 * blockSize));
+        ctx.lineTo(x + (blockSize), y + (2 * blockSize));
+        ctx.moveTo(x, y + (3 * blockSize));
+        ctx.lineTo(x + (blockSize), y + (3 * blockSize));
+        ctx.moveTo(x, y + (4 * blockSize));
+        ctx.lineTo(x + blockSize, y + (4 * blockSize));
+        ctx.moveTo(x + blockSize, y + (4 * blockSize));
+        ctx.lineTo(x + blockSize, y);
+        ctx.moveTo(x + blockSize, y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+    }
+    function drawSShape() {
+        var x = state[0];
+        var y = state[1];
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + (blockSize));
+        ctx.moveTo(x, y + (1 * blockSize));
+        ctx.lineTo(x + blockSize, y + (1 * blockSize));
+        ctx.moveTo(x + blockSize, y + (blockSize));
+        ctx.lineTo(x + blockSize, y + (2 * blockSize));
+        ctx.moveTo(x + blockSize, y + (2 * blockSize));
+        ctx.lineTo(x + 3 * blockSize, y + (2 * blockSize));
+        ctx.moveTo(x + 3 * blockSize, y + (2 * blockSize));
+        ctx.lineTo(x + 3 * blockSize, y + (1 * blockSize));
+        ctx.moveTo(x + 3 * blockSize, y + (1 * blockSize));
+        ctx.lineTo(x + 2 * blockSize, y + (1 * blockSize));
+        ctx.moveTo(x + 2 * blockSize, y + (1 * blockSize));
+        ctx.lineTo(x + 2 * blockSize, y);
+        ctx.moveTo(x + 2 * blockSize, y);
+        ctx.lineTo(x, y);
+        ctx.moveTo(x + blockSize, y);
+        ctx.lineTo(x + blockSize, y + blockSize);
+        ctx.moveTo(x + blockSize, y + blockSize);
+        ctx.lineTo(x + 2 * blockSize, y + blockSize);
+        ctx.moveTo(x + 2 * blockSize, y + 2 * blockSize);
+        ctx.lineTo(x + 2 * blockSize, y + blockSize);
+        ctx.stroke();
+    }
+
+    function drawBShape() {
+        var x = state[0];
+        var y = state[1];
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + (2 * blockSize));
+        ctx.moveTo(x, y + (blockSize));
+        ctx.lineTo(x + (2 * blockSize), y + (blockSize));
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + (2 * blockSize), y);
+        ctx.moveTo(x + (2 * blockSize), y);
+        ctx.lineTo(x + (2 * blockSize), y + (2 * blockSize));
+        ctx.moveTo(x, y + (2 * blockSize));
+        ctx.lineTo(x + (2 * blockSize), y + (2 * blockSize));
+        ctx.moveTo(x + (blockSize), y);
+        ctx.lineTo(x + (blockSize), y + (2 * blockSize));
+        ctx.stroke();
+    }
+
+    function drawLShape() {
+        var x = state[0];
+        var y = state[1];
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + (3 * blockSize));
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + blockSize, y);
+        ctx.moveTo(x + blockSize, y);
+        ctx.lineTo(x + blockSize, y + (2 * blockSize));
+        ctx.moveTo(x, y + blockSize);
+        ctx.lineTo(x + blockSize, y + blockSize);
+        ctx.moveTo(x + blockSize, y + (2 * blockSize));
+        ctx.lineTo(x + (blockSize), y + (3 * blockSize));
+        ctx.moveTo(x, y + (2 * blockSize));
+        ctx.lineTo(x + blockSize, y + (2 * blockSize));
+        ctx.moveTo(x + blockSize, y + (2 * blockSize));
+        ctx.lineTo(x + (2 * blockSize), y + (2 * blockSize));
+        ctx.moveTo(x + (2 * blockSize), y + (2 * blockSize));
+        ctx.lineTo(x + (2 * blockSize), y + (3 * blockSize));
+        ctx.moveTo(x + (2 * blockSize), y + (3 * blockSize));
+        ctx.lineTo(x, y + (3 * blockSize));
+        ctx.stroke();
+    }
+
+    function setBlockType() {
+        var rand = Math.floor(Math.random() * 10) % 4;
+        currentBlock = blocks[rand][0];
+        currentBlockHeight = blocks[rand][1];
+    }
+
+</script>
