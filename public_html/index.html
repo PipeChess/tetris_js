@@ -50,6 +50,11 @@ and open the template in the editor.
             color: 'lilac',
             pivot: 1,
             name: 's_shape_right'
+        }, {
+            coords: [[-4, 4], [-3, 4], [-2, 4], [-1, 4]],
+            color: 'white',
+            pivot: 1,
+            name: 'bar'
         }];
 
     getRandomBlock();
@@ -210,7 +215,7 @@ and open the template in the editor.
     }
 
     function getRandomBlock() {
-        var rand = Math.floor((Math.random() *100)) %5;
+        var rand = Math.floor((Math.random() * 100)) % blocks.length;
         currentBlock = blocks[rand];
     }
 </script>
