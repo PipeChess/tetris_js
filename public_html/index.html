@@ -17,6 +17,8 @@ and open the template in the editor.
 
 <script>
     var gmatrix;
+    var size_height = 22;
+    var size_width = 10;
     var speed = 1;
     var currentBlock = null;
 
@@ -24,7 +26,6 @@ and open the template in the editor.
     var ctx = canvas.getContext("2d");
 
 
-    initializeGameMatrix();
     var blocks = [{
             coords: [[-2, 4], [-2, 5], [-1, 4], [-1, 5]],
             color: 'red',
@@ -57,8 +58,8 @@ and open the template in the editor.
             name: 'bar'
         }];
 
-    getRandomBlock();
-
+    initializeGameMatrix();
+    newRandomBlock();
     updateBlockPosition('down');
 
 
@@ -68,7 +69,7 @@ and open the template in the editor.
      * @param string dir
      * @returns void
      */
-    function updateBlockPosition(dir) {
+    function updateBlockPosition(dir, clockwise) {
         for (var i = 0; i < currentBlock.coords.length; i++) {
             switch (dir) {
                 case 'down':
@@ -76,17 +77,22 @@ and open the template in the editor.
                     break;
 
                 case 'left':
-                    currentBlock.coords[i][1] -= 1;
+                    if (currentBlock.coords[i][1] > 0) {
+                        currentBlock.coords[i][1] -= 1;
+                    }
                     break;
 
                 case 'right':
-                    currentBlock.coords[i][1] += 1;
+                    if (currentBlock.coords[i][1] < size_width - 1) {
+                        currentBlock.coords[i][1] += 1;
+                    }
                     break;
 
                 case 'turn':
                     if (currentBlock.pivot == null) {
                         break;
                     }
+                    var angle = clockwise ? -80 : 80;
                     for (var i = 0; i < currentBlock.coords.length; i++) {
                         if (i != currentBlock.pivot) {
                             var op_x = currentBlock.coords[i][1];
@@ -95,8 +101,8 @@ and open the template in the editor.
                             var c_x = currentBlock.coords[currentBlock.pivot][1];
                             var c_y = currentBlock.coords[currentBlock.pivot][0];
 
-                            var px = Math.round(Math.cos(80) * (op_x - c_x) - Math.sin(80) * (op_y - c_y) + c_x);
-                            var py = Math.round(Math.sin(80) * (op_x - c_x) - Math.cos(80) * (op_y - c_y) + c_y);
+                            var px = Math.round(Math.cos(angle) * (op_x - c_x) - Math.sin(angle) * (op_y - c_y) + c_x);
+                            var py = Math.round(Math.sin(angle) * (op_x - c_x) - Math.cos(angle) * (op_y - c_y) + c_y);
 
                             currentBlock.coords[i][1] = px;
                             currentBlock.coords[i][0] = py;
@@ -180,18 +186,22 @@ and open the template in the editor.
      * @returns void
      */
     function initializeGameMatrix() {
-        gmatrix = new Array(22);
+        gmatrix = new Array(size_height);
         for (var i = 0; i < gmatrix.length; i++) {
-            gmatrix[i] = new Array(10);
+            gmatrix[i] = new Array(size_width);
             for (var j = 0; j < gmatrix[i].length; j++) {
                 gmatrix[i][j] = false;
             }
         }
     }
 
+    /**
+     * Command function for movement of blocks
+     * @param event ev
+     * @returns void
+     */
     function keyPress(ev) {
         var key = ev.which || ev.keyCode;
-
         switch (key) {
             case 37:
                 updateBlockPosition('left');
@@ -206,7 +216,11 @@ and open the template in the editor.
                 break;
 
             case 17:
-                updateBlockPosition('turn');
+                updateBlockPosition('turn', false);
+                break;
+
+            case 18:
+                updateBlockPosition('turn', true);
                 break;
 
             default:
@@ -214,7 +228,11 @@ and open the template in the editor.
         }
     }
 
-    function getRandomBlock() {
+    /**
+     * Sets a new random block
+     * @returns void
+     */
+    function newRandomBlock() {
         var rand = Math.floor((Math.random() * 100)) % blocks.length;
         currentBlock = blocks[rand];
     }
