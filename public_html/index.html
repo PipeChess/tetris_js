@@ -12,6 +12,7 @@ and open the template in the editor.
     </head>
     <body onkeydown="keyPress(event);">
         <span id="score">0</span> points 
+        level <span id="level">1</span>  <br />
         <button id="startGameBtn" onclick="startRoutine(true);">new game</button>
         <button id="startGameBtn" onclick="endGame(false);">end game</button>
         <br />
@@ -242,6 +243,10 @@ and open the template in the editor.
                 break;
         }
         document.getElementById("score").innerHTML = totalPoints;
+
+        var speedVal = Math.round(totalPoints / 100);
+        initialSpeed = (speedVal >= 1 ? 1000 - (speedVal * 50) : 1000);
+        document.getElementById("level").innerHTML = speedVal + 1
     }
 
     /**
@@ -283,6 +288,8 @@ and open the template in the editor.
                 }
             }
         }
+
+
     }
 
     /**
@@ -348,8 +355,7 @@ and open the template in the editor.
      * @returns void
      */
     function newRandomBlock() {
-        var rand = Math.floor((Math.random() * 100)) % 5;
-        currentBlock = blocks[rand];
+        currentBlock = blocks[Math.floor((Math.random() * 60)) % 7];
     }
 
 </script>
