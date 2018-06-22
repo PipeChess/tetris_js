@@ -174,11 +174,12 @@
                     return;
                 }
                 //collision with other blocks
+                //Todo: last block exception for end game not yet really completed
                 if (typeof gmatrix[tmpBlock.coords[i][0]][tmpBlock.coords[i][1]] === 'object') {
                     if (dir === 'down') {
-                        for (var m = 0; m < tmpBlock.coords.length; m++) {
-                            for (var n = 0; n < tmpBlock.coords[m].length; n++) {
-                                if (tmpBlock.coords[m][0] < 0) {
+                        for (var m = 0; m < currentBlock.coords.length; m++) {
+                            for (var n = 0; n < currentBlock.coords[m].length; n++) {
+                                if (currentBlock.coords[m][0] < 0) {
                                     endGame(true);
                                     return;
                                 }
