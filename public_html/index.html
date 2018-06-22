@@ -7,9 +7,12 @@
     </head>
     <body onkeydown="keyPress(event);">
         <span id="score">0</span> points 
-        level <span id="level">1</span>  <br />
+        level <span id="level">1</span>
+        <span id="info"></span>
+        <br />
         <button id="startGameBtn" onclick="startRoutine(true);">new game</button>
-        <button id="startGameBtn" onclick="endGame(false);">end game</button>
+        <button id="endGameBtn" onclick="endGame(false);">end game</button>
+        <button id="pauseGameBtn" onclick="pauseGame();">pause</button>
         <br />
         <br />
         <canvas id="game" height="440" width="200"></canvas>
@@ -25,48 +28,50 @@
     var speed = 1;
     var gameInterval = null;
     var currentBlock = null;
+    var upcomingBlock = null;
     var initialSpeed = 1000;
     var enabledCommands = false;
     var totalPoints = 0;
+    var gamePaused = false;
 
     var canvas = document.getElementById("game");
     var ctx = canvas.getContext("2d");
 
     var blocks = [{
             coords: [[-2, 4], [-2, 5], [-1, 4], [-1, 5]],
-            color: 'red',
+            color: 'yellow',
             pivot: null,
-            name: 'cube'
+            name: 'O-block'
         }, {
             coords: [[-3, 4], [-2, 4], [-1, 4], [-1, 3]],
-            color: 'yellow',
+            color: 'blue',
             pivot: 1,
-            name: 'l_shape_left'
+            name: 'J-block'
         }, {
             coords: [[-3, 4], [-2, 4], [-1, 4], [-1, 5]],
             color: 'orange',
             pivot: 1,
-            name: 'l_shape_right'
+            name: 'L-Block'
         }, {
             coords: [[-3, 4], [-2, 4], [-2, 5], [-1, 5]],
-            color: 'olive',
+            color: 'green',
             pivot: 1,
-            name: 's_shape_left'
+            name: 'S-Block'
         }, {
             coords: [[-3, 5], [-2, 5], [-2, 4], [-1, 4]],
-            color: 'brown',
+            color: 'red',
             pivot: 1,
-            name: 's_shape_right'
+            name: 'Z-Block'
         }, {
             coords: [[-4, 4], [-3, 4], [-2, 4], [-1, 4]],
-            color: 'white',
+            color: 'cyan',
             pivot: 1,
-            name: 'bar'
+            name: 'I-Block'
         }, {
             coords: [[-2, 5], [-1, 4], [-1, 5], [-1, 6]],
-            color: 'pink',
+            color: 'purple',
             pivot: 2,
-            name: 'camel'
+            name: 'T-Block'
         }];
 
     startRoutine(true);
@@ -92,6 +97,23 @@
         initializeGameMatrix();
         drawDisplay();
         enabledCommands = false;
+    }
+
+    function pauseGame() {
+        if (gamePaused) {
+            enabledCommands = true;
+            gameInterval = setInterval(function () {
+                updateBlockPosition('down');
+            }, initialSpeed);
+            gamePaused = false;
+            document.getElementById("pauseGameBtn").innerHTML = "pause";
+        } else {
+            gamePaused = true;
+            clearInterval(gameInterval);
+            gameInterval = null;
+            enabledCommands = false;
+            document.getElementById("pauseGameBtn").innerHTML = "resume";
+        }
     }
 
     /**
@@ -241,7 +263,7 @@
         document.getElementById("score").innerHTML = totalPoints;
 
         var speedVal = Math.round(totalPoints / 100);
-        initialSpeed = (speedVal >= 1 ? 1000 - (speedVal * 50) : 1000);
+        initialSpeed = (speedVal > 1 ? 1000 - (speedVal * 50) : 1000);
         document.getElementById("level").innerHTML = speedVal + 1
     }
 
@@ -250,11 +272,14 @@
      * @returns void
      */
     function drawDisplay() {
+        document.getElementById("info").innerHTML = "next block: " + upcomingBlock.name;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
-        ctx.rect(0, 0, 440, 500);
-        ctx.fillStyle = "aqua";
+        ctx.rect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "beige";
         ctx.fill();
+        ctx.strokeStyle = "#000";
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
         for (var i = 0; i < gmatrix.length; i++) {
             for (var j = 0; j < gmatrix[i].length; j++) {
                 if (gmatrix[i][j] !== false) {
@@ -267,6 +292,7 @@
                     var x = j * 20;
                     var y = i * 20;
                     ctx.beginPath();
+                    ctx.strokeStyle = "#000";
                     ctx.moveTo(x, y);
                     ctx.lineTo(x + 20, y);
                     ctx.moveTo(x + 20, y);
@@ -322,8 +348,8 @@
      * @returns void
      */
     function keyPress(ev) {
+        var key = ev.which || ev.keyCode;
         if (enabledCommands) {
-            var key = ev.which || ev.keyCode;
             switch (key) {
                 case 37:
                     updateBlockPosition('left');
@@ -334,15 +360,23 @@
                 case 39:
                     updateBlockPosition('right');
                     break;
-                case 17:
+                case 16:
                     updateBlockPosition('turn', false);
                     break;
-                case 18:
+                case 17:
                     updateBlockPosition('turn', true);
                     break;
                 default:
                     break;
             }
+        }
+        switch (key) {
+            case 32:
+                pauseGame();
+                break;
+            default:
+                break;
+
         }
     }
 
@@ -351,7 +385,8 @@
      * @returns void
      */
     function newRandomBlock() {
-        currentBlock = blocks[Math.floor((Math.random() * 60)) % 7];
+        currentBlock = (upcomingBlock ? upcomingBlock : blocks[Math.floor((Math.random() * 60)) % 7]);
+        upcomingBlock = blocks[Math.floor((Math.random() * 60)) % 7];
     }
 
 </script>
