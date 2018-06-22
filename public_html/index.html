@@ -11,7 +11,14 @@ and open the template in the editor.
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body onkeydown="keyPress(event);">
+        <span id="score">0</span> points 
+        <button id="startGameBtn" onclick="startRoutine(true);">new game</button>
+        <button id="startGameBtn" onclick="endGame(false);">end game</button>
+        <br />
+        <br />
         <canvas id="game" height="440" width="200"></canvas>
+        <br />
+        <span id="gameMessage"></span>
     </body>
 </html>
 
@@ -20,11 +27,14 @@ and open the template in the editor.
     var size_height = 22;
     var size_width = 10;
     var speed = 1;
+    var gameInterval = null;
     var currentBlock = null;
+    var initialSpeed = 1000;
+    var enabledCommands = false;
+    var totalPoints = 0;
 
     var canvas = document.getElementById("game");
     var ctx = canvas.getContext("2d");
-
 
     var blocks = [{
             coords: [[-2, 4], [-2, 5], [-1, 4], [-1, 5]],
@@ -48,7 +58,7 @@ and open the template in the editor.
             name: 's_shape_left'
         }, {
             coords: [[-3, 5], [-2, 5], [-2, 4], [-1, 4]],
-            color: 'lilac',
+            color: 'brown',
             pivot: 1,
             name: 's_shape_right'
         }, {
@@ -56,12 +66,37 @@ and open the template in the editor.
             color: 'white',
             pivot: 1,
             name: 'bar'
+        }, {
+            coords: [[-2, 5], [-1, 4], [-1, 5], [-1, 6]],
+            color: 'pink',
+            pivot: 2,
+            name: 'camel'
         }];
 
-    initializeGameMatrix();
-    newRandomBlock();
-    updateBlockPosition('down');
+    startRoutine(true);
 
+    function startRoutine(newgame) {
+        if (newgame && gameInterval === null) {
+            enabledCommands = true;
+            initializeGameMatrix();
+            gameInterval = setInterval(function () {
+                updateBlockPosition('down');
+            }, initialSpeed);
+        }
+        newRandomBlock();
+        updateBlockPosition('down');
+    }
+
+    function endGame(lost) {
+        if (lost) {
+            document.getElementById("gameMessage").innerHTML = "YOU LOST";
+        }
+        clearInterval(gameInterval);
+        gameInterval = null;
+        initializeGameMatrix();
+        drawDisplay();
+        enabledCommands = false;
+    }
 
     /**
      * Based on direction either moves the block left, right, down or performs
@@ -70,48 +105,105 @@ and open the template in the editor.
      * @returns void
      */
     function updateBlockPosition(dir, clockwise) {
-        for (var i = 0; i < currentBlock.coords.length; i++) {
+        var tmpBlock = JSON.parse(JSON.stringify(currentBlock));
+        for (var i = 0; i < tmpBlock.coords.length; i++) {
             switch (dir) {
                 case 'down':
-                    currentBlock.coords[i][0] += 1;
+                    tmpBlock.coords[i][0] += 1;
                     break;
-
                 case 'left':
-                    if (currentBlock.coords[i][1] > 0) {
-                        currentBlock.coords[i][1] -= 1;
-                    }
+                    tmpBlock.coords[i][1] -= 1;
                     break;
-
                 case 'right':
-                    if (currentBlock.coords[i][1] < size_width - 1) {
-                        currentBlock.coords[i][1] += 1;
-                    }
+                    tmpBlock.coords[i][1] += 1;
                     break;
-
                 case 'turn':
-                    if (currentBlock.pivot == null) {
+                    if (tmpBlock.pivot == null) {
                         break;
                     }
                     var angle = clockwise ? -80 : 80;
-                    for (var i = 0; i < currentBlock.coords.length; i++) {
-                        if (i != currentBlock.pivot) {
-                            var op_x = currentBlock.coords[i][1];
-                            var op_y = currentBlock.coords[i][0];
-
-                            var c_x = currentBlock.coords[currentBlock.pivot][1];
-                            var c_y = currentBlock.coords[currentBlock.pivot][0];
-
+                    for (var i = 0; i < tmpBlock.coords.length; i++) {
+                        if (i != tmpBlock.pivot) {
+                            var op_x = tmpBlock.coords[i][1];
+                            var op_y = tmpBlock.coords[i][0];
+                            var c_x = tmpBlock.coords[tmpBlock.pivot][1];
+                            var c_y = tmpBlock.coords[tmpBlock.pivot][0];
                             var px = Math.round(Math.cos(angle) * (op_x - c_x) - Math.sin(angle) * (op_y - c_y) + c_x);
                             var py = Math.round(Math.sin(angle) * (op_x - c_x) - Math.cos(angle) * (op_y - c_y) + c_y);
-
-                            currentBlock.coords[i][1] = px;
-                            currentBlock.coords[i][0] = py;
+                            tmpBlock.coords[i][1] = px;
+                            tmpBlock.coords[i][0] = py;
                         }
                     }
                     break;
             }
         }
+        checkBlock(tmpBlock, dir);
+    }
+
+    function checkGameMatrixForRowCompletion() {
+        var rowsRemoved = 0;
+        for (var i = 0; i < gmatrix.length; i++) {
+            var row = true;
+            for (var j = 0; j < gmatrix[i].length; j++) {
+                if (typeof gmatrix[i][j] !== 'object') {
+                    row = false;
+                }
+            }
+            if (row) {
+                for (var m = i; m >= 0; m--) {
+                    if (m == 0) {
+                        for (var n = 0; n < gmatrix[0].length; n++) {
+                            gmatrix[0][n] = false;
+                        }
+                    } else {
+                        gmatrix[m] = JSON.parse(JSON.stringify(gmatrix[m - 1]));
+                    }
+                }
+                rowsRemoved++;
+            }
+        }
+        score(rowsRemoved);
+    }
+
+    function checkBlock(tmpBlock, dir) {
+        for (var i = 0; i < tmpBlock.coords.length; i++) {
+            if (tmpBlock.coords[i][0] >= 0) {
+                //reached left or right edge of game area
+                if (tmpBlock.coords[i][1] < 0 || tmpBlock.coords[i][1] > size_width - 1) {
+                    return;
+                }
+                //reached bottom of game area
+                if (tmpBlock.coords[i][0] > size_height - 1) {
+                    setCurrentBlockFixed();
+                    return;
+                }
+                //collision with other blocks
+                if (typeof gmatrix[tmpBlock.coords[i][0]][tmpBlock.coords[i][1]] === 'object') {
+                    if (dir === 'down') {
+                        for (var m = 0; m < tmpBlock.coords.length; m++) {
+                            for (var n = 0; n < tmpBlock.coords[m].length; n++) {
+                                if (tmpBlock.coords[m][0] < 0) {
+                                    endGame(true);
+                                    return;
+                                }
+                            }
+                        }
+                        setCurrentBlockFixed();
+                    }
+                    return;
+                }
+            }
+        }
+        currentBlock = tmpBlock;
         setBlock();
+    }
+
+    function setCurrentBlockFixed() {
+        for (var i = 0; i < currentBlock.coords.length; i++) {
+            gmatrix[currentBlock.coords[i][0]][currentBlock.coords[i][1]] = currentBlock;
+        }
+        checkGameMatrixForRowCompletion();
+        startRoutine(false);
     }
 
     /**
@@ -131,21 +223,49 @@ and open the template in the editor.
         drawDisplay();
     }
 
+    function score(rowAmount) {
+        switch (rowAmount) {
+            case 1:
+                totalPoints += 10;
+                break;
+
+            case 2:
+                totalPoints += 40;
+                break;
+
+            case 3:
+                totalPoints += 80;
+                break;
+
+            case 4:
+                totalPoints += 150;
+                break;
+        }
+        document.getElementById("score").innerHTML = totalPoints;
+    }
+
     /**
      * Clear the display redraws background, all updated blocks and fills them
      * @returns void
      */
     function drawDisplay() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
         ctx.rect(0, 0, 440, 500);
         ctx.fillStyle = "aqua";
         ctx.fill();
-        ctx.beginPath();
         for (var i = 0; i < gmatrix.length; i++) {
             for (var j = 0; j < gmatrix[i].length; j++) {
-                if (gmatrix[i][j] == true) {
+                if (gmatrix[i][j] !== false) {
+                    var color;
+                    if (gmatrix[i][j] === 1) {
+                        color = currentBlock.color;
+                    } else {
+                        color = gmatrix[i][j].color;
+                    }
                     var x = j * 20;
                     var y = i * 20;
+                    ctx.beginPath();
                     ctx.moveTo(x, y);
                     ctx.lineTo(x + 20, y);
                     ctx.moveTo(x + 20, y);
@@ -154,14 +274,12 @@ and open the template in the editor.
                     ctx.lineTo(x, y + 20);
                     ctx.moveTo(x, y + 20);
                     ctx.lineTo(x, y);
-
-                    //fill color
-                    ctx.rect(x, y, 20, 20);
-                    ctx.fillStyle = currentBlock.color;
-                    ctx.fill();
-
                     //draw borders
                     ctx.stroke();
+                    //fill color
+                    ctx.rect(x, y, 20, 20);
+                    ctx.fillStyle = color;
+                    ctx.fill();
                 }
             }
         }
@@ -174,7 +292,7 @@ and open the template in the editor.
     function resetGameMatrix() {
         for (var i = 0; i < gmatrix.length; i++) {
             for (var j = 0; j < gmatrix[i].length; j++) {
-                if (gmatrix[i][j] !== true) {
+                if (typeof gmatrix[i][j] !== 'object') {
                     gmatrix[i][j] = false;
                 }
             }
@@ -201,30 +319,27 @@ and open the template in the editor.
      * @returns void
      */
     function keyPress(ev) {
-        var key = ev.which || ev.keyCode;
-        switch (key) {
-            case 37:
-                updateBlockPosition('left');
-                break;
-
-            case 40:
-                updateBlockPosition('down');
-                break;
-
-            case 39:
-                updateBlockPosition('right');
-                break;
-
-            case 17:
-                updateBlockPosition('turn', false);
-                break;
-
-            case 18:
-                updateBlockPosition('turn', true);
-                break;
-
-            default:
-                break;
+        if (enabledCommands) {
+            var key = ev.which || ev.keyCode;
+            switch (key) {
+                case 37:
+                    updateBlockPosition('left');
+                    break;
+                case 40:
+                    updateBlockPosition('down');
+                    break;
+                case 39:
+                    updateBlockPosition('right');
+                    break;
+                case 17:
+                    updateBlockPosition('turn', false);
+                    break;
+                case 18:
+                    updateBlockPosition('turn', true);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -233,7 +348,8 @@ and open the template in the editor.
      * @returns void
      */
     function newRandomBlock() {
-        var rand = Math.floor((Math.random() * 100)) % blocks.length;
+        var rand = Math.floor((Math.random() * 100)) % 5;
         currentBlock = blocks[rand];
     }
+
 </script>
