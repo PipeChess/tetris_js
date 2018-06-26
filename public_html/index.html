@@ -10,7 +10,7 @@
                 font-family: Arial;
                 color: white
             }
-            
+
             .center {
                 margin: auto;
                 width: 50%;
@@ -48,10 +48,8 @@
     var enabledCommands = false;
     var totalPoints = 0;
     var gamePaused = false;
-
     var canvas = document.getElementById("game");
     var ctx = canvas.getContext("2d");
-
     var blocks = [{
             coords: [[-2, 4], [-2, 5], [-1, 4], [-1, 5]],
             color: 'yellow',
@@ -91,6 +89,12 @@
 
     startRoutine(true);
 
+    /**
+     * Start routine to initialize game matrix, interval & commands.
+     * Generates a new block & triggers update event
+     * @param boolean newgame
+     * @returns void
+     */
     function startRoutine(newgame) {
         if (newgame && gameInterval === null) {
             enabledCommands = true;
@@ -103,6 +107,11 @@
         updateBlockPosition('down');
     }
 
+    /**
+     * Ends game interval resets game matrix disables commands
+     * @param boolean lost
+     * @returns viod
+     */
     function endGame(lost) {
         if (lost) {
             document.getElementById("gameMessage").innerHTML = "YOU LOST";
@@ -114,6 +123,11 @@
         enabledCommands = false;
     }
 
+    /**
+     * Either pauses or un-pauses game. Blocks or allows commands, either clears
+     * or reinitiates game interval
+     * @returns void
+     */
     function pauseGame() {
         if (gamePaused) {
             enabledCommands = true;
@@ -173,6 +187,11 @@
         checkBlock(tmpBlock, dir);
     }
 
+    /**
+     * Routine to check if rows are completed, removing them and creating new top
+     * row, after calculating all completed rows calls score. 
+     * @returns void
+     */
     function checkGameMatrixForRowCompletion() {
         var rowsRemoved = 0;
         for (var i = 0; i < gmatrix.length; i++) {
@@ -198,6 +217,16 @@
         score(rowsRemoved);
     }
 
+    /**
+     * Based on user input, decides if tmp block either exceeds game are boundaries
+     * or overlaps with other placed blocks. If so the move will be ignore, otherwise
+     * the block gets either placed or if after placement the currentblock is not totally
+     * within game area, the game will be ended.
+     * @param blockObject tmpBlock
+     * @param direction dir
+     * @returns void
+     */
+
     function checkBlock(tmpBlock, dir) {
         for (var i = 0; i < tmpBlock.coords.length; i++) {
             if (tmpBlock.coords[i][0] >= 0) {
@@ -211,7 +240,6 @@
                     return;
                 }
                 //collision with other blocks
-                //Todo: last block exception for end game not yet really completed
                 if (typeof gmatrix[tmpBlock.coords[i][0]][tmpBlock.coords[i][1]] === 'object') {
                     if (dir === 'down') {
                         for (var m = 0; m < currentBlock.coords.length; m++) {
@@ -232,6 +260,10 @@
         setBlock();
     }
 
+    /**
+     * Sets a block fixed by adding it to the game area (display matrix)
+     * @returns  void
+     */
     function setCurrentBlockFixed() {
         for (var i = 0; i < currentBlock.coords.length; i++) {
             gmatrix[currentBlock.coords[i][0]][currentBlock.coords[i][1]] = currentBlock;
@@ -257,6 +289,12 @@
         drawDisplay();
     }
 
+    /**
+     * Adds to score if rows where removed. Adjusts the game level based on score
+     * 
+     * @param int rowAmount
+     * @returns void
+     */
     function score(rowAmount) {
         switch (rowAmount) {
             case 1:
