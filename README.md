@@ -6,6 +6,7 @@ A small JS based tetris implementation using canvas
 - Sound effects
 - Testing other browsers (Edge, Firefox and yes IE11 and maybe IE 10... Safari)
 - Styling & Visuals
+- improve randomization of blocks (change likelihood of repeating blocks)
 
 #Implemented in its first version:
 - Collision detection
