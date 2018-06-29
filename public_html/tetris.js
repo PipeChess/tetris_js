@@ -14,7 +14,14 @@ var tetris = {
     canvas: null,
     ctx: null,
     blocks: [],
-    initialize: function (canvas) {
+    playArea: null,
+    play: function (playArea) {
+        this.playArea = document.getElementById(playArea);
+        this.createHTML();
+        this.initialize();
+        this.startRoutine(true);
+    },
+    initialize: function () {
         this.gmatrix = [];
         this.size_height = 22;
         this.size_width = 10;
@@ -26,8 +33,8 @@ var tetris = {
         this.enabledCommands = false;
         this.totalPoints = 0;
         this.gamePaused = false;
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
+        this.canvas = document.getElementById("tetris_canvas");
+        this.ctx = this.canvas.getContext("2d");
         this.blocks = [{
                 coords: [[-2, 4], [-2, 5], [-1, 4], [-1, 5]],
                 color: 'yellow',
@@ -64,6 +71,78 @@ var tetris = {
                 pivot: 2,
                 name: 'T-Block'
             }];
+    },
+    createHTML: function () {
+        //set body
+        document.body.style.backgroundColor = "#123456";
+        document.body.style.fontFamily = "Arial";
+        document.body.style.color = "white";
+        document.body.setAttribute('onkeydown', 'tetris.keyPress(event);');
+
+        //set play area style
+        document.getElementById("playArea").style.margin = "auto";
+        document.getElementById("playArea").style.width = "50%";
+        document.getElementById("playArea").style.padding = "10px";
+
+        //Score display
+        var score = document.createElement("span");
+        score.id = 'score';
+        var scoreText = document.createTextNode("0 points");
+        score.appendChild(scoreText);
+        this.playArea.appendChild(score);
+
+        //Level display
+        var level = document.createElement("span");
+        level.id = 'level';
+        var levelText = document.createTextNode("level 1");
+        level.appendChild(levelText);
+        this.playArea.appendChild(level);
+
+        //Info display
+        var info = document.createElement("span");
+        info.id = 'info';
+        var infoText = document.createTextNode("");
+        info.appendChild(infoText);
+        this.playArea.appendChild(info);
+        this.playArea.innerHTML += "<br />";
+
+        //Buttons display
+        var btn = document.createElement("button");
+        btn.id = 'startGameBtn';
+        btn.setAttribute('onclick', 'tetris.startRoutine(true);');
+        var btnText = document.createTextNode("new game");
+        btn.appendChild(btnText);
+        this.playArea.appendChild(btn);
+
+        btn = document.createElement("button");
+        btn.id = 'endGameBtn';
+        btn.setAttribute('onclick', 'tetris.endGame(false);');
+        btnText = document.createTextNode("end game");
+        btn.appendChild(btnText);
+        this.playArea.appendChild(btn);
+
+        btn = document.createElement("button");
+        btn.id = 'pauseGameBtn';
+        btn.setAttribute('onclick', 'tetris.pauseGame();');
+        btnText = document.createTextNode("pause game");
+        btn.appendChild(btnText);
+        this.playArea.appendChild(btn);
+
+        this.playArea.innerHTML += "<br />";
+        this.playArea.innerHTML += "<br />";
+
+        var canvas = document.createElement("canvas");
+        canvas.id = 'tetris_canvas';
+        canvas.height = "440";
+        canvas.width = "200";
+        this.playArea.appendChild(canvas);
+
+        this.playArea.innerHTML += "<br />";
+
+        //Level display
+        var gameMessage = document.createElement("span");
+        gameMessage.id = 'gameMessage';
+        this.playArea.appendChild(gameMessage);
     },
     /**
      * Start routine to initialize game matrix, interval & commands.
@@ -107,7 +186,7 @@ var tetris = {
     pauseGame: function () {
         if (this.gamePaused) {
             this.enabledCommands = true;
-            
+
             var that = this;
             this.gameInterval = setInterval(function () {
                 that.updateBlockPosition('down');
@@ -284,12 +363,12 @@ var tetris = {
                 this.totalPoints += 150;
                 break;
         }
-        document.getElementById("score").innerHTML = this.totalPoints;
+        document.getElementById("score").innerHTML = this.totalPoints + " points";
 
         //todo: handle level & difficulty adjustments
         var speedVal = Math.round(this.totalPoints / 100);
         this.initialSpeed = (speedVal > 1 ? 1000 - (speedVal * 50) : 1000);
-        document.getElementById("level").innerHTML = speedVal + 1;
+        document.getElementById("level").innerHTML = "level " + (speedVal + 1);
     },
     /**
      * Clear the display redraws background, all updated blocks and fills them

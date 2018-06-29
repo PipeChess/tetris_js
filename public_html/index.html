@@ -4,39 +4,14 @@
         <title>TETRIS js</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {
-                background: #123456;
-                font-family: Arial;
-                color: white
-            }
-
-            .center {
-                margin: auto;
-                width: 50%;
-                padding: 10px;
-            }
-        </style>
+        
     </head>
-    <body onkeydown="tetris.keyPress(event);">
-        <div class="center">
-            <span id="score">0</span> points 
-            level <span id="level">1</span>
-            <span id="info"></span>
-            <br />
-            <button id="startGameBtn" onclick="tetris.startRoutine(true);">new game</button>
-            <button id="endGameBtn" onclick="tetris.endGame(false);">end game</button>
-            <button id="pauseGameBtn" onclick="tetris.pauseGame();">pause</button>
-            <br />
-            <br />
-            <canvas id="game" height="440" width="200"></canvas>
-            <br />
-            <span id="gameMessage"></span>
-        </div>
+    <body>
+        <div id="playArea"></div>
+        
         <script type="text/javascript" src="tetris.js"></script>
         <script type="text/javascript">
-            tetris.initialize(document.getElementById("game"));
-            tetris.startRoutine(true);
+            tetris.play("playArea");
         </script>
     </body>
 </html>
