@@ -5,6 +5,7 @@ A small JS based tetris implementation using canvas
 - Increasing difficulty (Levels)
 - Sound effects
 - Testing other browsers (Edge, Firefox and yes IE11 and maybe IE 10... Safari)
+- Styling & Visuals
 
 #Implemented in its first version:
 - Collision detection
