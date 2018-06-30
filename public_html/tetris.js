@@ -15,11 +15,11 @@ var tetris = {
     ctx: null,
     blocks: [],
     playArea: null,
+    interacted: false,
     play: function (playArea) {
         this.playArea = document.getElementById(playArea);
         this.createHTML();
         this.initialize();
-        this.startRoutine(true);
     },
     initialize: function () {
         this.gmatrix = [];
@@ -31,8 +31,9 @@ var tetris = {
         this.upcomingBlock = null;
         this.initialSpeed = 1000;
         this.enabledCommands = false;
-        this.totalPoints = 0;
         this.gamePaused = false;
+        this.totalPoints = 0;
+        this.currentLevel = 0;
         this.canvas = document.getElementById("tetris_canvas");
         this.ctx = this.canvas.getContext("2d");
         this.blocks = [{
@@ -73,6 +74,7 @@ var tetris = {
             }];
     },
     createHTML: function () {
+        this.playArea.style.textAlign = "center";
         //set body
         document.body.style.backgroundColor = "#123456";
         document.body.style.fontFamily = "Arial";
@@ -81,14 +83,28 @@ var tetris = {
 
         //set play area style
         document.getElementById("playArea").style.margin = "auto";
-        document.getElementById("playArea").style.width = "50%";
+        document.getElementById("playArea").style.width = "30%";
         document.getElementById("playArea").style.padding = "10px";
+        document.getElementById("playArea").style.border = "1px dashed beige";
+
+        //Logo
+        var logo = document.createElement("span");
+        logo.id = "logo";
+        logo.style.fontFamily = "Verdana";
+        logo.style.fontSize = "40px";
+        var logoText = document.createTextNode("TETRIS js");
+        logo.appendChild(logoText);
+        this.playArea.appendChild(logo);
+        this.playArea.innerHTML += "<br />";
 
         //Score display
         var score = document.createElement("span");
         score.id = 'score';
         var scoreText = document.createTextNode("0 points");
         score.appendChild(scoreText);
+        score.style.fontSize = "10px";
+        score.style.fontWeight = "bold";
+        score.style.padding = "10px";
         this.playArea.appendChild(score);
 
         //Level display
@@ -96,6 +112,9 @@ var tetris = {
         level.id = 'level';
         var levelText = document.createTextNode("level 1");
         level.appendChild(levelText);
+        level.style.fontSize = "10px";
+        level.style.fontWeight = "bold";
+        level.style.padding = "10px";
         this.playArea.appendChild(level);
 
         //Info display
@@ -103,6 +122,9 @@ var tetris = {
         info.id = 'info';
         var infoText = document.createTextNode("");
         info.appendChild(infoText);
+        info.style.fontSize = "10px";
+        info.style.fontWeight = "bold";
+        info.style.padding = "10px";
         this.playArea.appendChild(info);
         this.playArea.innerHTML += "<br />";
 
@@ -112,6 +134,8 @@ var tetris = {
         btn.setAttribute('onclick', 'tetris.startRoutine(true);');
         var btnText = document.createTextNode("new game");
         btn.appendChild(btnText);
+        btn.style.borderRadius = "5px";
+        btn.style.fontSize = "11px";
         this.playArea.appendChild(btn);
 
         btn = document.createElement("button");
@@ -119,6 +143,8 @@ var tetris = {
         btn.setAttribute('onclick', 'tetris.endGame(false);');
         btnText = document.createTextNode("end game");
         btn.appendChild(btnText);
+        btn.style.borderRadius = "5px";
+        btn.style.fontSize = "11px";
         this.playArea.appendChild(btn);
 
         btn = document.createElement("button");
@@ -126,6 +152,8 @@ var tetris = {
         btn.setAttribute('onclick', 'tetris.pauseGame();');
         btnText = document.createTextNode("pause game");
         btn.appendChild(btnText);
+        btn.style.borderRadius = "5px";
+        btn.style.fontSize = "11px";
         this.playArea.appendChild(btn);
 
         this.playArea.innerHTML += "<br />";
@@ -151,6 +179,7 @@ var tetris = {
      * @returns void
      */
     startRoutine: function (newgame) {
+        this.interacted = true;
         if (newgame && this.gameInterval === null) {
             this.enabledCommands = true;
             this.initializeGameMatrix();
@@ -169,14 +198,29 @@ var tetris = {
      * @returns viod
      */
     endGame: function (lost) {
-        if (lost) {
-            document.getElementById("gameMessage").innerHTML = "YOU LOST";
-        }
         clearInterval(this.gameInterval);
         this.gameInterval = null;
         this.initializeGameMatrix();
         this.drawDisplay();
         this.enabledCommands = false;
+        if (lost) {
+            this.ctx.beginPath();
+            this.ctx.font = "30px Arial";
+            this.ctx.fillStyle = "blue";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText("YOU LOST", this.canvas.width / 2, this.canvas.height / 2);
+            this.ctx.font = "15px Arial";
+            this.ctx.fillStyle = "blue";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText(this.totalPoints + " points", this.canvas.width / 2, this.canvas.height / 2 + 40);
+        } else {
+            this.ctx.beginPath();
+            this.ctx.font = "20px Arial";
+            this.ctx.fillStyle = "blue";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText("Don't chicken out", this.canvas.width / 2, this.canvas.height / 2);
+            this.ctx.fillText("Try again!", this.canvas.width / 2, this.canvas.height / 2 + 20);
+        }
     },
     /**
      * Either pauses or un-pauses game. Blocks or allows commands, either clears
@@ -192,7 +236,7 @@ var tetris = {
                 that.updateBlockPosition('down');
             }, this.initialSpeed);
             this.gamePaused = false;
-            document.getElementById("pauseGameBtn").innerHTML = "pause";
+            document.getElementById("pauseGameBtn").innerHTML = "pause game";
         } else {
             this.gamePaused = true;
             clearInterval(this.gameInterval);
@@ -349,18 +393,22 @@ var tetris = {
         switch (rowAmount) {
             case 1:
                 this.totalPoints += 10;
+                this.playSound("removed-1");
                 break;
 
             case 2:
                 this.totalPoints += 40;
+                this.playSound("removed-1");
                 break;
 
             case 3:
                 this.totalPoints += 80;
+                this.playSound("removed-1");
                 break;
 
             case 4:
                 this.totalPoints += 150;
+                this.playSound("removed-4");
                 break;
         }
         document.getElementById("score").innerHTML = this.totalPoints + " points";
@@ -368,14 +416,19 @@ var tetris = {
         //todo: handle level & difficulty adjustments
         var speedVal = Math.round(this.totalPoints / 100);
         this.initialSpeed = (speedVal > 1 ? 1000 - (speedVal * 50) : 1000);
-        document.getElementById("level").innerHTML = "level " + (speedVal + 1);
+
+        if (this.currentLevel != speedVal + 1) {
+            this.currentLevel = (speedVal + 1);
+            this.playSound("level-up");
+        }
+        document.getElementById("level").innerHTML = "level " + this.currentLevel;
     },
     /**
      * Clear the display redraws background, all updated blocks and fills them
      * @returns void
      */
     drawDisplay: function () {
-        document.getElementById("info").innerHTML = "next block: " + this.upcomingBlock.name;
+        document.getElementById("info").innerHTML = "next: " + this.upcomingBlock.name;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.beginPath();
         this.ctx.rect(0, 0, this.canvas.width, this.canvas.height);
@@ -446,6 +499,7 @@ var tetris = {
      * @returns void
      */
     keyPress: function (ev) {
+        this.interacted = true;
         var key = ev.which || ev.keyCode;
         if (this.enabledCommands) {
             switch (key) {
@@ -460,9 +514,11 @@ var tetris = {
                     break;
                 case 16:
                     this.updateBlockPosition('turn', false);
+                    this.playSound("turn");
                     break;
                 case 17:
                     this.updateBlockPosition('turn', true);
+                    this.playSound("turn");
                     break;
                 default:
                     break;
@@ -471,10 +527,40 @@ var tetris = {
         switch (key) {
             case 32:
                 this.pauseGame();
+
                 break;
             default:
                 break;
 
+        }
+    },
+    playSound: function (type) {
+        if (this.interacted) {
+            switch (type) {
+                case "turn":
+                    var audio = new Audio('./sounds/turn.wav');
+                    audio.play();
+
+                    break;
+
+                case "level-up":
+                    var audio = new Audio('./sounds/level-up.wav');
+                    audio.play();
+
+                    break;
+
+                case "removed-1":
+                    var audio = new Audio('./sounds/removed-1.wav');
+                    audio.play();
+
+                    break;
+
+                case "removed-4":
+                    var audio = new Audio('./sounds/removed-4.wav');
+                    audio.play();
+
+                    break;
+            }
         }
     },
     /**
